@@ -1,14 +1,11 @@
 package com.warh.viewmodel_practice01.view
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -19,9 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.warh.viewmodel_practice01.ui.theme.ViewModelPractice01Theme
 import com.warh.viewmodel_practice01.viewmodel.QuoteViewModel
-import java.lang.Exception
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -49,6 +47,9 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
     var datasourceSelected by remember { mutableStateOf(0) }
     val title = "Random Quotes"
 
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember{ SnackbarHostState() }
+
     quoteViewModel?.quote?.observe(LocalLifecycleOwner.current) {
         quoteText = it.content
         quoteAuthor = it.author
@@ -56,14 +57,21 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colors.background
+        color = MaterialTheme.colors.background,
     ) {
         Scaffold(
             topBar = {
                 TopAppBar(
                     navigationIcon = {
                         IconButton(onClick = {
-                            //TODO: Add favorite Quote to Database
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "Quote added to favs ♥",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+
+                            quoteViewModel?.addFavoriteQuote(quoteViewModel.quote.value!!)
                         }) {
                             Icon(Icons.Filled.Favorite, "Favorite")
                         }},
@@ -89,7 +97,6 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
                     menuItems.forEachIndexed { index, s ->
                         DropdownMenuItem(onClick = {
                             datasourceSelected = index
-                            //title = "Quotes from $s"
                             expandedSettings = false
                         }) {
                             Text(s)
@@ -97,6 +104,9 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
                     }
                 }
             }
+
+            CustomSnackbar(snackbarHostState = snackbarHostState) {}
+
             QuoteScreen(
                 quoteText,
                 quoteAuthor,
@@ -118,5 +128,39 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
 fun DefaultPreview() {
     ViewModelPractice01Theme {
         MainScreen(null)
+    }
+}
+
+@Composable
+fun CustomSnackbar(
+    snackbarHostState: SnackbarHostState,
+    onHideSnackbar: () -> Unit
+) {
+    Box(
+        Modifier.fillMaxWidth()
+    ){
+        SnackbarHost(
+            modifier = Modifier.padding(8.dp),
+            hostState = snackbarHostState,
+            snackbar = {
+                Snackbar(
+                    action = {
+                        TextButton(
+                            onClick = {
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                            }
+                        ){
+                            Text(
+                                text = snackbarHostState.currentSnackbarData?.actionLabel ?: "",
+                                color = Color.White
+                            )
+
+                        }
+                    }
+                ) {
+                    Text(snackbarHostState.currentSnackbarData?.message ?: "")
+                }
+            }
+        )
     }
 }
