@@ -1,6 +1,7 @@
 package com.warh.viewmodel_practice01.view
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +21,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import com.warh.viewmodel_practice01.ui.theme.ViewModelPractice01Theme
 import com.warh.viewmodel_practice01.viewmodel.QuoteViewModel
+import java.lang.Exception
 
 class MainActivity : ComponentActivity() {
 
@@ -41,9 +44,10 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
     var quoteAuthor by remember { mutableStateOf("Made with love by Willi ♥") }
 
     var expandedSettings by remember { mutableStateOf(false) }
-    val menuItems = listOf("Companion object", "Api REST", "Room DB")
+    val menuItems = listOf("Static DS", "Api REST", "Room DB")
 
-    var title by remember { mutableStateOf("Random Quotes App") }
+    var datasourceSelected by remember { mutableStateOf(0) }
+    val title = "Random Quotes"
 
     quoteViewModel?.quote?.observe(LocalLifecycleOwner.current) {
         quoteText = it.content
@@ -57,7 +61,13 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(title) },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            //TODO: Add favorite Quote to Database
+                        }) {
+                            Icon(Icons.Filled.Favorite, "Favorite")
+                        }},
+                    title = { Text("$title (${menuItems[datasourceSelected]})") },
                     actions = {
                         IconButton(onClick = {
                             expandedSettings = !expandedSettings
@@ -68,7 +78,9 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
                 )
             }
         ) {
-            Box(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.TopEnd)) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.TopEnd)) {
                 DropdownMenu(
                     expanded = expandedSettings,
                     onDismissRequest = { expandedSettings = false },
@@ -76,7 +88,8 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
                 ) {
                     menuItems.forEachIndexed { index, s ->
                         DropdownMenuItem(onClick = {
-                            title = "Quotes from $s"
+                            datasourceSelected = index
+                            //title = "Quotes from $s"
                             expandedSettings = false
                         }) {
                             Text(s)
@@ -88,7 +101,13 @@ fun MainScreen(quoteViewModel: QuoteViewModel?){
                 quoteText,
                 quoteAuthor,
                 onClickAction = {
-                    quoteViewModel?.randomQuote()
+                    when(datasourceSelected){
+                        0 -> quoteViewModel?.randomQuote(0)
+                        1 -> quoteViewModel?.randomQuote(1)
+                        2 -> quoteViewModel?.randomQuote(2)
+                        else -> throw Exception("Datasource undefined")
+                    }
+
                 })
         }
     }

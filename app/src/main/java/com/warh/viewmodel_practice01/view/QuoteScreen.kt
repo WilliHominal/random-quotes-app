@@ -2,6 +2,8 @@ package com.warh.viewmodel_practice01.view
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -24,17 +26,19 @@ fun QuoteScreen(quoteText: String,
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
+        LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(24.dp),
-            contentAlignment = Alignment.Center
+            verticalArrangement = Arrangement.Center,
         ){
-            Text(quoteText,
-                style = MaterialTheme.typography.body1,
-                textAlign = TextAlign.Justify
-            )
+            item {
+                Text(quoteText,
+                    style = MaterialTheme.typography.body1,
+                    textAlign = TextAlign.Justify
+                )
+            }
         }
         Text(quoteAuthor,
             style = MaterialTheme.typography.body2,
